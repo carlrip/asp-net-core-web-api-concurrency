@@ -58,12 +58,17 @@ namespace WebAPI.Controllers
                 {
                     return StatusCode(409);
                 }
-                await connection.ExecuteAsync(@"UPDATE Product
-                                            SET ProductName=@ProductName,
-                                                UnitPrice=@UnitPrice,
-                                                UnitsInStock=@UnitsInStock
-                                            WHERE ProductId = @ProductId",
-                                            product);
+                var rowsUpdated = await connection.ExecuteAsync(@"UPDATE Product
+                                                                SET ProductName=@ProductName,
+                                                                    UnitPrice=@UnitPrice,
+                                                                    UnitsInStock=@UnitsInStock
+                                                                WHERE ProductId = @ProductId
+                                                                    AND Version = @Version",
+                                                                product);
+                if (rowsUpdated != 1)
+                {
+                    return StatusCode(409);
+                }
                 var savedProduct = await connection.QueryFirstOrDefaultAsync<Product>("SELECT * FROM Product WHERE ProductId = @ProductId", new { ProductId = product.ProductId });
                 return Ok(savedProduct);
             }
